@@ -3,10 +3,10 @@ import Link from 'next/link'
 import { CircleUserRound ,ShoppingCart  } from 'lucide-react'
 import { useState } from 'react'
 import axios from 'axios'
-
-
+import { useRouter } from 'next/navigation'
 
 export default function Nav(){
+    const router = useRouter();
      const [popup, setPopup] = useState(false)
         const [regis, setRegis] = useState(false)
         const [value1, setValue1] = useState({
@@ -18,6 +18,7 @@ export default function Nav(){
             password: '',
             confirmpass: ''
         })
+        const [role , setRole] = useState('customer')
         const [error, setError] = useState('')
     
         const popupHandle = () => {
@@ -51,20 +52,39 @@ export default function Nav(){
     
         const handleLoginSubmit = async () => {
             if (!value1.email || !value1.password) {
-                setError('Please fill in all fields')
-            } else {
-                setError('')
-                try{
-                    const res = await axios.post('http://localhost:8080/login',value1)
-                    if(res.status === 200){
-                        console.log('success')
-                    }
-                }catch(err){
-                    console.log(err)
-                }
-                
+                setError('Please fill in all fields');
+                return; 
             }
-        }
+        
+            setError('');
+        
+            try {
+                const res = await axios.post('http://localhost:8080/login', value1, { withCredentials: true });
+        
+                console.log('Response:', res.data);
+        
+                if (res.data.success) { 
+                    localStorage.setItem('role', res.data.role);
+                    setPopup(false);
+        
+                    if (res.data.role === "admin") {
+                        router.push('/admin');
+                    } else {
+                        router.push('/'); 
+                    }
+                } else {
+                    setError(res.data.message || "Wrong password or email!"); 
+                }
+            } catch (err) {
+                console.log(err);
+                setError("An error occurred during login.");
+            }
+        };
+        
+        
+        
+        
+        
     
         const handleRegisterSubmit = async () => {
             if (!value2.email || !value2.password || !value2.confirmpass) {
@@ -73,18 +93,19 @@ export default function Nav(){
                 setError('Passwords do not match')
             } else {
                 setError('')
-                console.log('Registering with:', value2)
+              
             }
 
             const valueFormatted = {
                 email: value2.email,
-                password: value2.password
+                password: value2.password,
+                role : role
             };
 
               try{
                 const res = await axios.post('http://localhost:8080/user',valueFormatted)
                 if(res.status === 200){
-                    console.log('success')
+                    location.replace('/')
                 }
 
               }catch(err){
