@@ -1,4 +1,10 @@
 package com.example.server.Repository;
 
-public interface MessageDAO {
+import com.example.server.Entity.Message;
+
+import java.util.List;
+
+public interface MessageDAO  {
+    void save(Message message);
+    List<Message> getAll();
 }

@@ -61,10 +61,7 @@ export default function Nav(){
             try {
                 const res = await axios.post('http://localhost:8080/login', value1, { withCredentials: true });
         
-                console.log('Response:', res.data);
-        
                 if (res.data.success) { 
-                    localStorage.setItem('role', res.data.role);
                     setPopup(false);
         
                     if (res.data.role === "admin") {
@@ -81,11 +78,6 @@ export default function Nav(){
             }
         };
         
-        
-        
-        
-        
-    
         const handleRegisterSubmit = async () => {
             if (!value2.email || !value2.password || !value2.confirmpass) {
                 setError('Please fill in all fields')

@@ -6,6 +6,8 @@ import jakarta.persistence.NoResultException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class UserRepository implements UserDAO{
     private EntityManager entityManager;
@@ -32,5 +34,24 @@ public class UserRepository implements UserDAO{
             return null; // ถ้าไม่เจอผู้ใช้
         }
     }
+
+    @Override
+    public List<User> getAll() {
+        return entityManager.createQuery("FROM User",User.class).getResultList();
+    }
+
+    @Override
+    @Transactional
+    public void updateUser(User user) {
+        entityManager.merge(user);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUser(Integer id) {
+        User user = entityManager.find(User.class,id);
+        entityManager.remove(user);
+    }
+
 
 }

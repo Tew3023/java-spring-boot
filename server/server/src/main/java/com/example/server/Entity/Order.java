@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "customer_order")
 public class Order {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -20,21 +21,32 @@ public class Order {
     @Column(name = "orderPrice")
     private int orderPrice;
 
+    @Column(name = "quantity")
+    private int quantity;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public Order() {}
+    @Column(name = "branch")
+    private String branch;
 
-    // Updated constructor to include customer
-    public Order(String customer, String foodOrder, int orderPrice) {
+    public Order() {
+        // ค่า default สำหรับ paidStatus คือ false แล้วในตัวแปร
+    }
+
+    public Order(String customer, String foodOrder, int orderPrice, int quantity, String branch) {
         this.customer = customer;
         this.foodOrder = foodOrder;
         this.orderPrice = orderPrice;
+        this.quantity = quantity;
+        this.branch = branch;
     }
 
     @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+    public void prePersist() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
     }
 
     public int getId() {
@@ -69,8 +81,28 @@ public class Order {
         this.orderPrice = orderPrice;
     }
 
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 
     @Override
@@ -80,7 +112,9 @@ public class Order {
                 ", customer='" + customer + '\'' +
                 ", foodOrder='" + foodOrder + '\'' +
                 ", orderPrice=" + orderPrice +
+                ", quantity=" + quantity +
                 ", createdAt=" + createdAt +
+                ", branch='" + branch + '\'' +
                 '}';
     }
 }

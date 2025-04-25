@@ -27,23 +27,15 @@ public class ServerApplication {
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http.cors() // ใช้การตั้งค่า CORS จาก WebMvcConfigurer
-				.and()
-				.csrf().disable() // ปิด CSRF เพื่อให้การพัฒนาสะดวกขึ้น (อย่าปิดใน Production หากไม่จำเป็น)
-				.authorizeRequests()
-				.anyRequest().permitAll(); // อนุญาตทุกคำขอ (แก้ไขตามความต้องการของคุณ)
-		return http.build();
-	}
-
-	public static void main(String[] args) {
-		SpringApplication.run(ServerApplication.class, args);
-	}
-
-	@Bean
 	public CommandLineRunner commandLineRunner() {
 		return runner -> {
 			System.out.println("Your server is working!");
 		};
 	}
+
+
+	public static void main(String[] args) {
+		SpringApplication.run(ServerApplication.class, args);
+	}
+
 }
