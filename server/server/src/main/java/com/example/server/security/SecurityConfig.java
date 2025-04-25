@@ -1,4 +1,4 @@
 package com.example.server.security;
 
-public class securityConfig {
+public class SecurityConfig {
 }
