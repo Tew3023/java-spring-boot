@@ -8,12 +8,30 @@ interface Branch {
   branchName: string;
 }
 
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler); // ถ้ามีการพิมพ์ใหม่ ล้าง timeout เดิม
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+
 export default function BranchList() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [popup, setPopup] = useState(false);
   const [branch, setBranch] = useState<Branch>({ id: 0, branchName: "" });
+  const [search, setSearch] = useState("");
 
   const componentRef = useRef<HTMLDivElement>(null);
+
+  const debouncedSearch = useDebounce(search, 500);
 
   // Correct implementation of useReactToPrint
   const handlePrint = useReactToPrint({ 
@@ -52,11 +70,24 @@ export default function BranchList() {
     setPopup((prev) => !prev);
   };
 
+  const filteredItems = branches.filter((item)=> item.branchName.includes(debouncedSearch.toLocaleLowerCase()))
+   
+
   return (
     <div className="bg-gray-100 p-8 rounded-lg min-h-screen flex justify-center">
       <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="flex items-center justify-between py-4 px-6 border-b bg-gray-50">
           <h2 className="text-2xl font-bold">Branch List</h2>
+          <h2 className="text-2xl font-bold">Order List</h2>
+          <input
+            type="text"
+            onChange={(e) => {
+              setSearch(e.target.value);
+            }}
+            value={search}
+            placeholder="search for order"
+            className="p-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm transition duration-200 bg-slate-200"
+          />
           <div className="flex gap-2">
             <button
               onClick={popupController}
@@ -83,8 +114,8 @@ export default function BranchList() {
               </tr>
             </thead>
             <tbody className="text-gray-600 text-sm font-light">
-              {branches.length > 0 ? (
-                branches.map((branch) => (
+              {filteredItems.length > 0 ? (
+                filteredItems.map((branch) => (
                   <tr key={branch.id} className="border-b border-gray-200 hover:bg-gray-100">
                     <td className="py-3 px-6">{branch.id}</td>
                     <td className="py-3 px-6">{branch.branchName}</td>

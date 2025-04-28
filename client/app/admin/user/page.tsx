@@ -1,8 +1,14 @@
 "use client";
 import axios from "axios";
-import { useEffect, useState , useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Trash2 } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
+import Box from '@mui/material/Box';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+
 
 interface User {
   id: number;
@@ -11,17 +17,44 @@ interface User {
   role: string;
 }
 
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler); // ถ้ามีการพิมพ์ใหม่ ล้าง timeout เดิม
+  }, [value, delay]);
+
+  return debouncedValue;
+}
 export default function UserList() {
   const [users, setUsers] = useState<User[]>([]);
+  const [search, setSearch] = useState("");
+  const [role, setRole] = useState('');
+
+  const handleChange = (event: SelectChangeEvent) => {
+    setRole(event.target.value as string);
+  };
 
   const componentRef = useRef<HTMLDivElement>(null);
+
+  const debouncedSearch = useDebounce(search, 500);
+  const debouncedRole = useDebounce(role, 500);
+
+  const filteredItems = users.filter((item) =>
+    item.email.toLowerCase().includes(debouncedSearch.toLowerCase()) &&
+    (debouncedRole === '' || item.role === debouncedRole)
+  );
   
-      const handlePrint = useReactToPrint({ 
-        contentRef: componentRef,
-        documentTitle: "UsersList",
-        pageStyle: "@media print { body { -webkit-print-color-adjust: exact; } }"
-      });
-  
+
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: "UsersList",
+    pageStyle: "@media print { body { -webkit-print-color-adjust: exact; } }",
+  });
 
   useEffect(() => {
     const getUserData = async () => {
@@ -49,10 +82,39 @@ export default function UserList() {
   return (
     <div className="bg-gray-100 p-8 rounded-lg min-h-screen flex justify-center">
       <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between py-4 px-6 border-b bg-gray-50">
+        <div className="flex items-center justify-between py-4 px-6 border-b bg-gray-50">
           <h2 className="text-2xl font-bold">User List</h2>
           <div className="flex gap-2">
-            <button 
+            <input
+              type="text"
+              onChange={(e) => {
+                setSearch(e.target.value);
+              }}
+              value={search}
+              placeholder="search for users"
+              className="p-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm transition duration-200 bg-slate-200"
+            />
+          </div>
+          <div>
+          <Box sx={{ minWidth: 120 }}>
+      <FormControl fullWidth>
+        <InputLabel id="demo-simple-select-label">Age</InputLabel>
+        <Select
+          labelId="demo-simple-select-label"
+          id="demo-simple-select"
+          value={role}
+          label="Role"
+          onChange={handleChange}
+        >
+          <MenuItem value={''}>both</MenuItem>
+          <MenuItem value={'admin'}>admin</MenuItem>
+          <MenuItem value={'customer'}>customer</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
+          </div>
+          <div className="flex gap-2">
+            <button
               onClick={() => handlePrint()}
               className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded text-lg"
             >
@@ -71,9 +133,12 @@ export default function UserList() {
               </tr>
             </thead>
             <tbody className="text-gray-600 text-sm font-light">
-              {users.length > 0 ? (
-                users.map((user) => (
-                  <tr key={user.id} className="border-b border-gray-200 hover:bg-gray-100">
+              {filteredItems.length > 0 ? (
+                filteredItems.map((user) => (
+                  <tr
+                    key={user.id}
+                    className="border-b border-gray-200 hover:bg-gray-100"
+                  >
                     <td className="py-3 px-6">{user.id}</td>
                     <td className="py-3 px-6">{user.email}</td>
                     <td className="py-3 px-6">{user.role}</td>
@@ -89,7 +154,10 @@ export default function UserList() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={4} className="py-3 px-6 text-center text-gray-500">
+                  <td
+                    colSpan={4}
+                    className="py-3 px-6 text-center text-gray-500"
+                  >
                     ไม่มีข้อมูลผู้ใช้
                   </td>
                 </tr>

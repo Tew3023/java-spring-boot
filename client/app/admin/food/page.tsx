@@ -15,11 +15,28 @@ interface Food2 {
   price: number;
 }
 
+function useDebounce(value: string, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler); // ถ้ามีการพิมพ์ใหม่ ล้าง timeout เดิม
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
 export default function FoodList() {
   const [foods, setFoods] = useState<Food[]>([]);
   const [editData, setEditData] = useState<Food | null>(null);
   const [popup, setPopup] = useState(false);
   const [food, setFood] = useState<Food2>({ fname: "", price: 0 });
+  const [search, setSearch] = useState("");
+
+  const debouncedSearch = useDebounce(search, 500);
 
   const componentRef = useRef<HTMLDivElement>(null);
   
@@ -87,11 +104,24 @@ export default function FoodList() {
     }
   };
 
+  const filteredItems = foods.filter((item)=>item.fname.toLocaleLowerCase().includes(debouncedSearch.toLocaleLowerCase()))
+
   return (
     <div className="bg-gray-100 p-8 rounded-lg min-h-screen flex justify-center">
       <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg overflow-hidden">
         <div className="flex items-center justify-between py-4 px-6 border-b bg-gray-50">
           <h2 className="text-2xl font-bold">Food List</h2>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              onChange={(e) => {
+                setSearch(e.target.value);
+              }}
+              value={search}
+              placeholder="search for food"
+              className="p-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm transition duration-200 bg-slate-200"
+            />
+          </div>
           <div className="flex gap-2">
             <button
               onClick={popupController}
@@ -120,8 +150,8 @@ export default function FoodList() {
               </tr>
             </thead>
             <tbody className="text-gray-600 text-sm font-light">
-              {foods.length > 0 ? (
-                foods.map((food) => (
+              {filteredItems.length > 0 ? (
+                filteredItems.map((food) => (
                   <tr key={food.id} className="border-b border-gray-200 hover:bg-gray-100">
                     <td className="py-3 px-6">{food.id}</td>
                     <td className="py-3 px-6">{food.fname}</td>
